@@ -25,6 +25,9 @@ def set_defaults(config):
   if "https_listen_ip" not in config["ingress"]:
     config["ingress"]["https_listen_ip"] = config["ingress"]["public_ip"]
 
+  if "ovpn_listen_ip" not in config["ingress"]:
+    config["ingress"]["ovpn_listen_ip"] = config["ingress"]["public_ip"]
+
   if "grafana_listen_ip" not in config["ingress"]:
     config["ingress"]["grafana_listen_ip"] = config["ingress"]["public_ip"]
 
@@ -44,16 +47,15 @@ def set_defaults(config):
   return config
 
 def generate_egress(config):
-  print("Generating compose file")
   header = f"""version: "3.3"
-  services:
-    autoheal:
-      restart: always
-      image: willfarrell/autoheal
-      environment:
-        - AUTOHEAL_CONTAINER_LABEL=all
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
+services:
+  autoheal:
+    restart: always
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 """
 
@@ -68,22 +70,23 @@ def generate_egress(config):
             evaluation_interval: 15s
 
           scrape_configs:
-          - job_name: "prometheus"
+          - job_name: \\"prometheus\\"
             static_configs:
-            - targets: ["localhost:9090"]
+            - targets: [\\"localhost:9090\\"]
 
-          - job_name: "egress_wireguard"
+          - job_name: \\"egress_wireguard\\"
             static_configs:
             - targets:
 """
   for tunnel in config["egress"]["tunnels"]:
-    prometheus_service += f"""            - wg-{ tunnel["name"] }\n"""
-  prometheus_service += f"""      EOF
-      - "--config.file /etc/prometheus/prometheus.yaml \
-        --storage.tsdb.path /prometheus \
-        --web.console.templates /etc/prometheus/consoles \
-        --web.console.libraries /etc/prometheus/console_libraries \
-        --web.listen-address :9090"
+    prometheus_service += f"""              - wg-{ tunnel["name"] }\n"""
+  prometheus_service += f"""        EOF
+        && /bin/prometheus \
+            --config.file /etc/prometheus/prometheus.yaml \
+            --storage.tsdb.path /prometheus \
+            --web.console.templates /etc/prometheus/consoles \
+            --web.console.libraries /etc/prometheus/console_libraries \
+            --web.listen-address :9090"
       ports:
         - "{config["egress"]["public_ip"]}:9090:{config["egress"]["metrics_port"]}"
       volumes:
@@ -132,14 +135,13 @@ def generate_egress(config):
 def generate_ingress(config):
   header = """version: "3.3"
 services:
-  services:
-    autoheal:
-      restart: always
-      image: willfarrell/autoheal
-      environment:
-        - AUTOHEAL_CONTAINER_LABEL=all
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
+  autoheal:
+    restart: always
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 """
   chisel_service = f"""  chisel:
@@ -161,8 +163,8 @@ services:
       - type: bind
         source: ./configs/keys
         target: /keys
-      ports:
-        - "{ config["ingress"]["https_listen_ip"]}:443:{config["ingress"]["https_listen_port"] }"
+    ports:
+      - "{ config["ingress"]["https_listen_ip"]}:443:{config["ingress"]["https_listen_port"] }"
 
 """
   admin_ui_service = f"""  admin-ui:
@@ -197,7 +199,7 @@ services:
     environment:
       EXCLUDE_CIDRS_FILE: "/opt/exclude-ranges.txt"
       WG_KEY_A: "{ config["egress"]["tunnels"][0]["peer_key"] }"
-      WG_KEY_B: "{ config["egress"]["tunnels"][1]["peer_key"] }
+      WG_KEY_B: "{ config["egress"]["tunnels"][1]["peer_key"] }"
       WG_KEY_C: "{ config["egress"]["tunnels"][2]["peer_key"] }"
 
       WG_SERVER_PUBKEY_A: "{ config["egress"]["tunnels"][0]["pubkey"] }"
@@ -249,33 +251,34 @@ services:
             evaluation_interval: 15s
 
           scrape_configs:
-          - job_name: "prometheus"
+          - job_name: \\"prometheus\\"
             static_configs:
-            - targets: ["localhost:9090"]
+            - targets: [\\"localhost:9090\\"]
 
-          - job_name: "openvpn"
+          - job_name: \\"openvpn\\"
             dns_sd_configs:
             - names:
               - ovpn
               type: A
               port: 9176
 
-          - job_name: "wireguard"
+          - job_name: \\"wireguard\\"
             scrape_interval: 15s
             honor_labels: true
             metrics_path: '/federate'
             params:
               'match[]':
-                - '{{job="egress_wireguard"}}'
+                - '{{job=\\"egress_wireguard\\"}}'
             static_configs:
             - targets:
               - '{ config["egress"]["public_ip"] }:{config["egress"]["metrics_port"] }'
-      EOF
-      - "--config.file /etc/prometheus/prometheus.yaml \
-        --storage.tsdb.path /prometheus \
-        --web.console.templates /etc/prometheus/consoles \
-        --web.console.libraries /etc/prometheus/console_libraries \
-        --web.listen-address :9090"
+        EOF
+        && /bin/prometheus
+          --config.file /etc/prometheus/prometheus.yaml \
+          --storage.tsdb.path /prometheus \
+          --web.console.templates /etc/prometheus/consoles \
+          --web.console.libraries /etc/prometheus/console_libraries \
+          --web.listen-address :9090"
       volumes:
         - type: bind
           source: ./prometheus
@@ -307,7 +310,7 @@ def main():
     config_filename = sys.argv[1]
 
   with open(config_filename, "r") as config_file:
-    print(f"Loading config file from `{config_file}`")
+    print(f"Loading config file from `{config_filename}`")
     config = yaml.safe_load(config_file)
 
   config = set_defaults(config)

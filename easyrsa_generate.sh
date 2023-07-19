@@ -17,6 +17,6 @@ cp pki/issued/server.crt ingress/configs/ovpn/server.crt
 cp pki/private/server.key ingress/configs/ovpn/server.key
 cp pki/dh.pem ingress/configs/ovpn/dh.pem
 cp pki/issued/${DOMAIN_NAME}.crt ingress/configs/keys/${DOMAIN_NAME}.crt.pem
-cp pki/issued/${DOMAIN_NAME}.key ingress/configs/keys/${DOMAIN_NAME}.key.pem
+cp pki/private/${DOMAIN_NAME}.key ingress/configs/keys/${DOMAIN_NAME}.key.pem
 
 rm -rf EasyRSA pki

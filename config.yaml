@@ -1,10 +1,12 @@
 egress:
   public_ip: 2.2.2.2
+  metrics_port: 9090
 
 ingress:
   public_ip: 1.1.1.1
   https_domain: example.com
   https_listen_port: 443
+  ovpn_listen_port: 444
   grafana_listen_port: 3000
   admin_ui_username: admin
   admin_ui_password: admin@123

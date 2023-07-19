@@ -2,3 +2,9 @@
 *.vscode
 *~
 output
+
+*/docker-compose.yaml
+ingress/configs/keys/*
+ingress/configs/ovpn/*.crt
+ingress/configs/ovpn/*.key
+ingress/configs/ovpn/*.pem
