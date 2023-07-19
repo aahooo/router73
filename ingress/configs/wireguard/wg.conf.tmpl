@@ -1,0 +1,14 @@
+[Interface]
+PrivateKey = #WG_KEY
+Address = #WG_ADDR/32
+Table = off
+PostUp = ip -4 route add #WG_SRV_ADDR/32 dev #WG_INTERFACE
+PostUp = iptables -t nat -A POSTROUTING -o #WG_INTERFACE -j SNAT --to-source #WG_ADDR
+PreDown = ip -4 route del #WG_SRV_ADDR/32 dev #WG_INTERFACE
+PreDown = iptables -t nat -D POSTROUTING -o #WG_INTERFACE -j SNAT --to-source #WG_ADDR
+
+[Peer]
+PublicKey = #WG_SERVER_PUBKEY
+PersistentKeepalive = 5
+AllowedIPs = 0.0.0.0/0
+Endpoint = #GATEWAY_IP:#WG_PORT

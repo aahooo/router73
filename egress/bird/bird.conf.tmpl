@@ -1,0 +1,31 @@
+router id #SRC_ADDR;
+
+debug protocols all;
+
+log "/var/log/bird" all;
+
+protocol device {
+    scan time 10;
+}
+
+protocol direct {
+    disabled;
+}
+
+protocol kernel {
+    import none;
+    export none;
+}
+
+protocol static {
+    route 0.0.0.0/0 via #WG_ADDR;
+}
+
+protocol bgp peer1 {
+    local #WG_ADDR as 65000;
+    neighbor #PEER_WG_ADDR as 65001;
+    multihop;
+    hold time 10;
+    import none;
+    export all;
+}

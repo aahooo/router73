@@ -1,0 +1,31 @@
+router id #SRC_IP;
+
+debug protocols all;
+
+log "/var/log/bird" all;
+
+protocol device {
+  scan time 10;
+}
+protocol kernel {
+  learn;
+  merge paths yes limit 3;
+  import all;
+  export all;
+}
+protocol bgp srv1 {
+  local #WG_ADDR_A as 65001;
+  neighbor #WG_SRV_ADDR_A as 65000;
+  multihop;
+  hold time 10;
+  export none;
+  import all;
+}
+protocol bgp srv2 {
+  local #WG_ADDR_B as 65001;
+  neighbor #WG_SRV_ADDR_B as 65000;
+  multihop;
+  hold time 10;
+  export none;
+  import all;
+}

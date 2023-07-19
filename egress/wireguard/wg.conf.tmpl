@@ -1,0 +1,17 @@
+[Interface]
+Address = #WG_ADDR/32
+Table = off
+PostUp = ip -4 route add #PEER_WG_ADDR/32 dev wg0
+PostUp = /sbin/iptables -A FORWARD -s #PEER_WG_ADDR/32 -j ACCEPT
+PostUp = /sbin/iptables -t nat -A POSTROUTING -s #PEER_WG_ADDR/32 -j SNAT --to-source #SRC_ADDR
+
+PreDown = ip -4 route del #PEER_WG_ADDR/32 dev wg0
+PreDown = /sbin/iptables -D FORWARD -s #PEER_WG_ADDR/32 -j ACCEPT
+PreDown = /sbin/iptables -t nat -D POSTROUTING -s #PEER_WG_ADDR/32 -j SNAT --to-source #SRC_ADDR
+
+ListenPort = 51820
+PrivateKey = #WG_KEY
+
+[Peer]
+PublicKey = #PEER_PUBKEY
+AllowedIPs = #PEER_WG_ADDR/32

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Management</title>
+    <style>
+      .loader {
+        width: 60px;
+        height: 60px;
+        background: transparent;
+        border: 10px solid transparent;
+        border-top-color: #f56;
+        border-left-color: #f56;
+        border-radius: 50%;
+        animation: loader 0.75s 10 ease forwards;
+      }
+      @keyframes loader {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <form action="/logout">
+      <input type="submit" value="Logout" />
+    </form>
+    <p>
+      <label for="action">Action:</label><br />
+      <select
+        name="action"
+        id="action"
+        onchange="set_page()"
+        onload="set_page()"
+      >
+        <option value="add">Add client</option>
+        <option value="revoke">Revoke client</option>
+        <option value="renew">Renew client</option>
+        <option value="get_client_data">Get client data</option>
+      </select>
+    </p>
+    <p>
+      <label for="submit">Submit:</label>
+      <button id="submit" value="Submit" onclick="submit_post_data()">
+        Submit
+      </button>
+    </p>
+
+    <p id="loading"></p>
+    <p id="response"></p>
+
+    <script>
+      function download(filename, text) {
+        var element = document.createElement("a");
+        element.setAttribute(
+          "href",
+          "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+        );
+        element.setAttribute("download", filename);
+
+        element.style.display = "none";
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
+      function download_config() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+          if (this.readyState == 4) {
+            if (this.status == 200) {
+                download("config.ovpn", this.responseText);
+              }
+            }
+        };
+        xhttp.open("GET", "/config.ovpn", true);
+        xhttp.send();
+      }
+
+
+      function create_peers_element(peers) {
+        p_element = document.createElement("p");
+        p_element.setAttribute("id", "action-specific");
+        input_element = document.createElement("input");
+        input_element.setAttribute("type", "text");
+        input_element.setAttribute("id", "search");
+        input_element.setAttribute("name", "search");
+        input_element.setAttribute("placeholder", "Search");
+        input_element.setAttribute("onchange", "search_peers()")
+        input_element.setAttribute("oninput", "search_peers()")
+        label_element = document.createElement("label");
+        label_element.setAttribute("for", "peer");
+        label_element.innerHTML = "Peer:";
+        select_element = document.createElement("select");
+        select_element.setAttribute("name", "peer");
+        select_element.setAttribute("id", "peer");
+        for (i = 0; i < peers.length; i++) {
+          option_element = document.createElement("option");
+          option_element.setAttribute("value", peers[i].name);
+          option_element.innerHTML = peers[i].name;
+          select_element.appendChild(option_element);
+        }
+        p_element.appendChild(input_element);
+        p_element.appendChild(document.createElement("br"));
+        p_element.appendChild(label_element);
+        p_element.appendChild(document.createElement("br"));
+        p_element.appendChild(select_element);
+        return p_element;
+      }
+
+      function search_peers() {
+        phrase = document.getElementById("search").value
+        peers = document.getElementById("peer").getElementsByTagName("option")
+        for (i = 0; i < peers.length; i++) {
+          if (peers[i].value.includes(phrase)) {
+            peers[i].hidden = false
+          } else {
+            peers[i].hidden = true
+          }
+        }
+      }
+
+      function create_add_peer_element() {
+        p_element = document.createElement("p");
+        p_element.setAttribute("id", "action-specific");
+        input_element = document.createElement("input");
+        input_element.setAttribute("type", "text");
+        input_element.setAttribute("id", "peer");
+        input_element.setAttribute("name", "peer");
+        input_element.setAttribute("placeholder", "Username");
+
+        password_element = document.createElement("input");
+        password_element.setAttribute("type", "text");
+        password_element.setAttribute("id", "password");
+        password_element.setAttribute("name", "password");
+        password_element.setAttribute("placeholder", "password");
+
+        link_element = document.createElement("button");
+        link_element.setAttribute("onclick", "download_config()")
+        link_element.innerHTML = "Download config"
+
+
+        p_element.appendChild(input_element);
+        p_element.appendChild(document.createElement("br"));
+        p_element.appendChild(password_element);
+        p_element.appendChild(document.createElement("br"));
+        p_element.appendChild(link_element);
+        return p_element;
+      }
+
+      function set_page() {
+        while (document.getElementById("action-specific")) {
+          document.getElementById("action-specific").remove();
+        }
+        action = document.getElementById("action").value;
+        if (action == "add") {
+          document
+            .getElementById("action")
+            .insertAdjacentElement("afterend", create_add_peer_element());
+        } else if (action == "revoke") {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+              peers = JSON.parse(this.responseText);
+              document
+                .getElementById("action")
+                .insertAdjacentElement("afterend", create_peers_element(peers));
+              document.getElementById("loading").innerHTML = ""
+            } else {
+              document.getElementById("loading").innerHTML =
+                '<div class="loader"></div>';
+            }
+          };
+          xhttp.open("GET", "/get-active-peers", true);
+          xhttp.send();
+        } else if (action == "renew") {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+              peers = JSON.parse(this.responseText);
+              document
+                .getElementById("action")
+                .insertAdjacentElement("afterend", create_peers_element(peers));
+              document.getElementById("loading").innerHTML = ""
+            } else {
+              document.getElementById("loading").innerHTML =
+                '<div class="loader"></div>';
+            }
+          };
+          xhttp.open("GET", "/get-revoked-peers", true);
+          xhttp.send();
+        } else if (action == "get_client_data") {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+              peers = JSON.parse(this.responseText);
+              document
+                .getElementById("action")
+                .insertAdjacentElement("afterend", create_peers_element(peers));
+              document.getElementById("loading").innerHTML = ""
+            } else {
+              document.getElementById("loading").innerHTML =
+                '<div class="loader"></div>';
+            }
+          };
+          xhttp.open("GET", "/get-peers", true);
+          xhttp.send();
+        }
+        return;
+      }
+
+      function submit_post_data() {
+        document.getElementById("response").innerHTML = "";
+        endpoint = "";
+        raw_data = {};
+        method = "POST";
+        action = document.getElementById("action").value;
+        if (action == "add") {
+          endpoint = "/add-peer";
+          raw_data["peer"] = document.getElementById("peer").value;
+          raw_data["password"] = document.getElementById("password").value;
+        } else if (action == "revoke") {
+          endpoint = "/revoke-peer";
+          raw_data["peer"] = document.getElementById("peer").value;
+        } else if (action == "renew") {
+          endpoint = "/renew-peer";
+          raw_data["peer"] = document.getElementById("peer").value;
+        } else if (action == "get_client_data") {
+          endpoint = "/get-client-data";
+          raw_data["peer"] = document.getElementById("peer").value;
+        } else {
+          return;
+        }
+        data = JSON.stringify(raw_data);
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+          if (this.readyState == 4) {
+            document.getElementById("loading").innerHTML = ""
+            if (this.status == 200) {
+              set_page();
+              document.getElementById("response").innerText = JSON.stringify(JSON.parse(this.responseText), null, 2);
+            } else {
+              document.getElementById("response").innerHTML = this.responseText
+            }
+          } else {
+            document.getElementById("loading").innerHTML =
+              '<div class="loader"></div>';
+          }
+        };
+        xhttp.open(method, endpoint, true);
+        xhttp.send(data);
+      }
+      set_page();
+    </script>
+  </body>
+</html>
