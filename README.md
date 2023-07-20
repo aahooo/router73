@@ -1,7 +1,7 @@
 # Router 73
 
 ## Introduction
-Router 73 is a project designed to provide secure internet access to users in a restricted network. It was designed with for lossy and highly restricted networks with performance and scalability in mind.
+Router 73 is a project designed to provide secure internet access to users in a restricted network. It was designed for lossy and highly restricted networks with performance and scalability in mind.
 
 ## Design
 Comming soon...
@@ -23,7 +23,7 @@ The following configs could be changed or left as default depending on your spec
 -   `ingress.admin_ui_password`: Password for administration panel.
 
 ### Generating manifests
-Simply running `python3 generate.py` generates keys and deployable manifests.
+Simply running `python3 generate.py config.yaml` generates keys and deployable manifests.
 
 ### Setting up the environment
 The following packages must be installed on both ingress and egress servers:
@@ -31,7 +31,7 @@ The following packages must be installed on both ingress and egress servers:
 -   docker-compose
 -   wireguard
 
-Note: after installing wireguard, enable wireguard kernel module by running `modprob wireguard`
+Note: after installing wireguard, enable the kernel module by running `modprob wireguard`
 
 ### Deploy
-Copy egress and ingress directories to the respective servers, then run `docker-compose up -d` in the directory where `docker-compose.yaml` exists on both servers. Health probes check th status of internal connections, so if the containers remain unhealthy, review your configurations and/or regenerate the manifests.
+Copy egress and ingress directories to the respective servers, then run `docker-compose up -d` in the directory where `docker-compose.yaml` exists on both servers. Health probes check th status of internal connections, so if `docker-compose ps` shows containers to be unhealthy, review your configurations and/or regenerate the manifests.
