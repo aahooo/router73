@@ -234,6 +234,10 @@ services:
       - type: bind
         source: ./configs/bird/bird.conf.tmpl
         target: /etc/bird/bird.conf.tmpl
+      - type: bind
+        source: ./build/ovpn/exclude-ranges.txt
+        target: /opt/exclude-ranges.txt
+        read_only: true
     ports:
       - "{ config["ingress"]["ovpn_listen_ip"] }:443:{ config["ingress"]["ovpn_listen_port"] }"
     privileged: true
