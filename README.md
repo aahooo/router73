@@ -24,8 +24,9 @@ The following configs could be changed or left as default depending on your spec
 
 ### Generating manifests
 The requirements:
-    - python3
-    - pywgkey
+-   python3
+-   pywgkey
+
 Simply running `python3 generate.py config.yaml` generates keys and deployable manifests.
 
 ### Setting up the environment
