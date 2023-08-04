@@ -100,8 +100,8 @@ services:
   for tunnel in config["egress"]["tunnels"]:
     wg_services += f"""  wg-{ tunnel["name"] }:
       build:
-        context: ./egress
-        dockerfile: ./egress/build/Dockerfile
+        context: ./
+        dockerfile: ./build/Dockerfile
       restart: "always"
       environment:
         CHISEL_ENDPOINT: https://{ config["ingress"]["https_domain"] }
@@ -169,8 +169,8 @@ services:
 """
   admin_ui_service = f"""  admin-ui:
     build:
-      context: ./ingress
-      dockerfile: ./ingress/build/admin-ui/Dockerfile
+      context: ./
+      dockerfile: ./build/admin-ui/Dockerfile
     command:
       - /bin/bash
       - -c
@@ -193,8 +193,8 @@ services:
 """
   openvpn_service = f"""  ovpn:
     build:
-      context: ./ingress
-      dockerfile: ./ingress/build/ovpn/Dockerfile
+      context: ./
+      dockerfile: ./build/ovpn/Dockerfile
     restart: "always"
     environment:
       EXCLUDE_CIDRS_FILE: "/opt/exclude-ranges.txt"

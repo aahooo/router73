@@ -23,6 +23,9 @@ The following configs could be changed or left as default depending on your spec
 -   `ingress.admin_ui_password`: Password for administration panel.
 
 ### Generating manifests
+The requirements:
+    - python3
+    - pywgkey
 Simply running `python3 generate.py config.yaml` generates keys and deployable manifests.
 
 ### Setting up the environment
