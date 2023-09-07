@@ -8,5 +8,6 @@ ingress:
   https_listen_port: 443
   ovpn_listen_port: 444
   grafana_listen_port: 3000
+  admin_ui_listen_port: 8088
   admin_ui_username: admin
   admin_ui_password: admin@123

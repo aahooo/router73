@@ -30,6 +30,9 @@ def set_defaults(config):
 
   if "grafana_listen_ip" not in config["ingress"]:
     config["ingress"]["grafana_listen_ip"] = config["ingress"]["public_ip"]
+  
+  if "admin_ui_listen_ip" not in config["ingress"]:
+    config["ingress"]["admin_ui_listen_ip"] = config["ingress"]["public_ip"]
 
   if "tunnels" not in config["egress"]:
     config["egress"]["tunnels"] = [
@@ -189,6 +192,9 @@ services:
         source: ./configs/ovpn
         target: /configs
         read_only: true
+    ports:
+      - "{ config["ingress"]["admin_ui_listen_ip"]}:8088:{config["ingress"]["admin_ui_listen_port"] }"
+
 
 """
   openvpn_service = f"""  ovpn:
@@ -239,7 +245,7 @@ services:
         target: /opt/exclude-ranges.txt
         read_only: true
     ports:
-      - "{ config["ingress"]["ovpn_listen_ip"] }:443:{ config["ingress"]["ovpn_listen_port"] }"
+      - "{ config["ingress"]["ovpn_listen_ip"] }:444:{ config["ingress"]["ovpn_listen_port"] }"
     privileged: true
 
 """

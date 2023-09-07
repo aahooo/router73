@@ -18,7 +18,8 @@ The following configs could be changed or left as default depending on your spec
 -   `ingress.https_listen_port`:  The port on which ingress listens for `ingress.https_domain` connections. If traffic is transported via a CDN, origin forward port must be set to this value. Otherwise no further configuration is necessary.
 -   `egress.metrics_port`: Egress server metrics port.
 -   `ingress.ovpn_listen_port`:  The port on which ingress server accepts openvpn connections.
--   `ingress.grafana_listen_port`:  The port on which inress server serves the grafana service.
+-   `ingress.grafana_listen_port`:  The port on which ingress server serves the grafana service.
+-   `ingress.admin_ui_listen_port`: The port on which ingress server serves the administration panel.
 -   `ingress.admin_ui_username`: Username for administration panel.
 -   `ingress.admin_ui_password`: Password for administration panel.
 
