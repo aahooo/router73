@@ -92,7 +92,7 @@ services:
       volumes:
         - type: bind
           source: ./prometheus
-          target: /prometheus
+          target: /etc/prometheus
 
 """
 
@@ -286,7 +286,7 @@ services:
       volumes:
         - type: bind
           source: ./prometheus
-          target: /prometheus
+          target: /etc/prometheus
 
 """
 
