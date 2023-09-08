@@ -30,7 +30,7 @@ def set_defaults(config):
 
   if "grafana_listen_ip" not in config["ingress"]:
     config["ingress"]["grafana_listen_ip"] = config["ingress"]["public_ip"]
-  
+
   if "admin_ui_listen_ip" not in config["ingress"]:
     config["ingress"]["admin_ui_listen_ip"] = config["ingress"]["public_ip"]
 
@@ -62,7 +62,7 @@ services:
 
 """
 
-  prometheus_service = """  prometheus:
+  prometheus_service = f"""  prometheus:
       image: prom/prometheus:v2.44.0
       entrypoint:
       - /bin/sh
@@ -120,20 +120,20 @@ services:
 
 def generate_egress_prometheus_configFile(config):
   prometheus_configFile = """
-          global:
-            scrape_interval: 15s
-            evaluation_interval: 15s
-          scrape_configs:
-            - job_name: "prometheus"
-              static_configs:
-              - targets: ["localhost:9090"]
-            - job_name: "egress_wireguard"
-              static_configs:
-              - targets: 
-  """
-  for tunnel in config["egress"]["tunnels"]:
-    prometheus_configFile += f"""              - wg-{ tunnel["name"]:9586 }\n
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: "prometheus"
+        static_configs:
+        - targets: ["localhost:9090"]
+      - job_name: "egress_wireguard"
+        static_configs:
+        - targets:
 """
+  for tunnel in config["egress"]["tunnels"]:
+      prometheus_configFile += f"""              - wg-{ tunnel["name"]}:9586 \n"""
+  
   return  prometheus_configFile
 
 
@@ -256,38 +256,10 @@ services:
 
   prometheus_service = f"""  prometheus:
       image: prom/prometheus:v2.44.0
-      command:
+      enterypoint:
       - /bin/sh
       - -c
-      - "cat > /etc/prometheus/prometheus.yaml <<EOF
-          global:
-            scrape_interval: 15s
-            evaluation_interval: 15s
-
-          scrape_configs:
-          - job_name: \\"prometheus\\"
-            static_configs:
-            - targets: [\\"localhost:9090\\"]
-
-          - job_name: \\"openvpn\\"
-            dns_sd_configs:
-            - names:
-              - ovpn
-              type: A
-              port: 9176
-
-          - job_name: \\"wireguard\\"
-            scrape_interval: 15s
-            honor_labels: true
-            metrics_path: '/federate'
-            params:
-              'match[]':
-                - '{{job=\\"egress_wireguard\\"}}'
-            static_configs:
-            - targets:
-              - '{ config["egress"]["public_ip"] }:{config["egress"]["metrics_port"] }'
-        EOF
-        && /bin/prometheus
+      - "/bin/prometheus
           --config.file /etc/prometheus/prometheus.yaml \
           --storage.tsdb.path /prometheus \
           --web.console.templates /etc/prometheus/consoles \
@@ -315,6 +287,37 @@ services:
 """
   return header+chisel_service+admin_ui_service+openvpn_service+prometheus_service+grafana_service
 
+def generate_ingress_prometheus_configFile(config):
+  prometheus_configFile=f"""
+    global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+
+  scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+    - targets: ["localhost:9090"]
+
+  - job_name: "openvpn"
+    dns_sd_configs:
+    - names:
+      - ovpn
+      type: A
+      port: 9176
+
+  - job_name: "wireguard"
+    scrape_interval: 15s
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{{job="egress_wireguard"}}'
+    static_configs:
+    - targets:
+      - '{ config["egress"]["public_ip"] }:{config["egress"]["metrics_port"] }'
+"""
+  return prometheus_configFile
+
 def main():
   if len(sys.argv) < 2:
     config_filename = "config.yaml"
@@ -334,12 +337,15 @@ def main():
   with open("ingress/docker-compose.yaml", "w") as file:
     print(f"Writing ingress compose file to `ingress/docker-compose.yaml`")
     file.write(generate_ingress(config))
+  with open("ingress/prometheus/prometheus.yaml", "w") as file:
+    print(f"Writing ingress prometheus file to `ingress/prometheus/prometheus.yaml`")
+    file.write(generate_ingress_prometheus_configFile(config))
   with open("egress/docker-compose.yaml", "w") as file:
     print(f"Writing egress compose file to `egress/docker-compose.yaml`")
     file.write(generate_egress(config))
   with open("egress/prometheus/prometheus.yaml", "w") as file:
-    print(f"Writing egress prometheus file to `egress/prometheus/prometheus.yam`")
-    file.write(  generate_egress_prometheus_configFile(config))
+    print(f"Writing egress prometheus file to `egress/prometheus/prometheus.yaml`")
+    file.write(generate_egress_prometheus_configFile(config))
 
 if __name__ == "__main__":
   main()
