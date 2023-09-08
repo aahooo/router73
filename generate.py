@@ -64,27 +64,10 @@ services:
 
   prometheus_service = """  prometheus:
       image: prom/prometheus:v2.44.0
-      command:
+      entrypoint:
       - /bin/sh
       - -c
-      - "cat > /etc/prometheus/prometheus.yaml <<EOF
-          global:
-            scrape_interval: 15s
-            evaluation_interval: 15s
-
-          scrape_configs:
-          - job_name: \\"prometheus\\"
-            static_configs:
-            - targets: [\\"localhost:9090\\"]
-
-          - job_name: \\"egress_wireguard\\"
-            static_configs:
-            - targets:
-"""
-  for tunnel in config["egress"]["tunnels"]:
-    prometheus_service += f"""              - wg-{ tunnel["name"] }\n"""
-  prometheus_service += f"""        EOF
-        && /bin/prometheus \
+      - "/bin/prometheus \
             --config.file /etc/prometheus/prometheus.yaml \
             --storage.tsdb.path /prometheus \
             --web.console.templates /etc/prometheus/consoles \
@@ -134,6 +117,27 @@ services:
 
 """
   return header+prometheus_service+wg_services
+
+def generate_egress_prometheus_configFile(config):
+  prometheus_configFile = """
+          global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+          scrape_configs:
+            - job_name: "prometheus"
+              static_configs:
+              - targets: ["localhost:9090"]
+            - job_name: "egress_wireguard"
+              static_configs:
+              - targets: 
+  """
+  for tunnel in config["egress"]["tunnels"]:
+    prometheus_configFile += f"""              - wg-{ tunnel["name"]:9586 }\n
+"""
+  return  prometheus_configFile
+
+
+
 
 def generate_ingress(config):
   header = """version: "3.3"
@@ -333,6 +337,9 @@ def main():
   with open("egress/docker-compose.yaml", "w") as file:
     print(f"Writing egress compose file to `egress/docker-compose.yaml`")
     file.write(generate_egress(config))
+  with open("egress/prometheus/prometheus.yaml", "w") as file:
+    print(f"Writing egress prometheus file to `egress/prometheus/prometheus.yam`")
+    file.write(  generate_egress_prometheus_configFile(config))
 
 if __name__ == "__main__":
   main()
