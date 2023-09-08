@@ -197,7 +197,7 @@ services:
         target: /configs
         read_only: true
     ports:
-      - "{ config["ingress"]["admin_ui_listen_ip"]}:8088:{config["ingress"]["admin_ui_listen_port"] }"
+      - "{ config["ingress"]["admin_ui_listen_ip"]}:{config["ingress"]["admin_ui_listen_port"] }:80"
 
 
 """
@@ -269,7 +269,8 @@ services:
         - type: bind
           source: ./prometheus
           target: /etc/prometheus
-
+      ports:
+        - "{config["ingress"]["public_ip"]}:9090:{config["ingress"]["metrics_port"]}"
 """
 
   grafana_service = f"""  grafana:
@@ -289,7 +290,7 @@ services:
 
 def generate_ingress_prometheus_configFile(config):
   prometheus_configFile=f"""
-    global:
+  global:
     scrape_interval: 15s
     evaluation_interval: 15s
 

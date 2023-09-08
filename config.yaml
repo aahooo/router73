@@ -7,6 +7,7 @@ ingress:
   https_domain: example.com
   https_listen_port: 443
   ovpn_listen_port: 444
+  metrics_port: 9090
   grafana_listen_port: 3000
   admin_ui_listen_port: 8088
   admin_ui_username: admin
