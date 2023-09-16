@@ -4,6 +4,7 @@ egress:
 
 ingress:
   public_ip: 1.1.1.1
+  docker_bridge_ip: 172.19.0.1
   https_domain: example.com
   https_listen_port: 443
   ovpn_listen_port: 444
