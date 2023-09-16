@@ -34,8 +34,11 @@ def set_defaults(config):
   if "admin_ui_listen_ip" not in config["ingress"]:
     config["ingress"]["admin_ui_listen_ip"] = config["ingress"]["public_ip"]
 
-  if "docker_bridge_ip" not in config["ingress"]:
-    config["ingress"]["docker_bridge_ip"] = config["ingress"]["docker_bridge_ip"]
+  if "docker_bridge_cidr" not in config["ingress"]:
+    config["ingress"]["docker_bridge_cidr"] = config["ingress"]["docker_bridge_cidr"]
+  
+  if "docker_bridge_gateway" not in config["ingress"]:
+    config["ingress"]["docker_bridge_gateway"] = config["ingress"]["docker_bridge_gateway"]
 
   if "tunnels" not in config["egress"]:
     config["egress"]["tunnels"] = [
@@ -95,7 +98,7 @@ services:
       environment:
         CHISEL_ENDPOINT: https://{ config["ingress"]["https_domain"] }
         CHISEL_FINGERPRINT: { config["ingress"]["chisel_fingerprint_hash"] }
-        PEER_ADDR: { config["ingress"]["docker_bridge_ip"] }
+        PEER_ADDR: { config["ingress"]["docker_bridge_gateway"] }
         PEER_PORT: { int(tunnel["forward_port"]) }
         WG_ADDR: { tunnel["ip"] }
         WG_KEY: { tunnel["key"] }
@@ -143,7 +146,16 @@ def generate_egress_prometheus_configFile(config):
 
 
 def generate_ingress(config):
-  header = """version: "3.3"
+  header = f"""version: "3.3"
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: "config["ingress"]["docker_bridge_cidr"]"
+        gateway: "{ config["ingress"]["docker_bridge_gateway"] }"
+
 services:
   autoheal:
     restart: always
