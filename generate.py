@@ -153,7 +153,7 @@ networks:
     ipam:
       driver: default
       config:
-      - subnet: "config["ingress"]["docker_bridge_cidr"]"
+      - subnet: "{ config["ingress"]["docker_bridge_cidr"] }"
         gateway: "{ config["ingress"]["docker_bridge_gateway"] }"
 
 services:
