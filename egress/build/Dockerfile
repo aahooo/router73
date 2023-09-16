@@ -12,7 +12,7 @@ RUN cargo install --path .
 
 FROM ubuntu:20.04
 
-ARG ARCH=amd46
+ARG ARCH=amd64
 ARG OS=linux
 ARG CHISEL_VERSION=1.7.7
 

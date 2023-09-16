@@ -8,9 +8,9 @@ mv EasyRSA-3.1.5 EasyRSA
 
 EasyRSA/easyrsa init-pki
 echo "ca" | EasyRSA/easyrsa build-ca nopass
-yes "yes" | EasyRSA/easyrsa build-server-full server nopass
+yes "yes" 2> /dev/null | EasyRSA/easyrsa build-server-full server nopass
 EasyRSA/easyrsa gen-dh
-yes "yes" | EasyRSA/easyrsa build-server-full "${DOMAIN_NAME}" nopass
+yes "yes" 2> /dev/null | EasyRSA/easyrsa build-server-full "${DOMAIN_NAME}" nopass
 
 cp pki/ca.crt ingress/configs/ovpn/ca.crt
 cp pki/issued/server.crt ingress/configs/ovpn/server.crt

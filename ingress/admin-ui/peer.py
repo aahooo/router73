@@ -5,6 +5,7 @@ import arrow
 
 import db
 import exceptions
+import requests
 
 CONFIG_TEMPLATE = """client
 dev tun
@@ -37,7 +38,10 @@ class Peer(object):
         self.status = peer_data.get("status")
 
     def get_domain() -> str:
-        return "87.107.165.180"
+        response = requests.get('https://api.ipify.org')
+        ip_address = response.text
+        return ip_address
+
 
     def generate_config():
         config = CONFIG_TEMPLATE
