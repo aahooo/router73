@@ -17,6 +17,7 @@ A sample configuration file (config.yaml) is provided. The following configs nee
 The following configs could be changed or left as default depending on your specific needs:
 -   `ingress.https_listen_port`:  The port on which ingress listens for `ingress.https_domain` connections. If traffic is transported via a CDN, origin forward port must be set to this value. Otherwise no further configuration is necessary.
 -   `egress.metrics_port`: Egress server metrics port.
+-   `docker_bridge_ip`:  The gateway ip address of containers
 -   `ingress.ovpn_listen_port`:  The port on which ingress server accepts openvpn connections.
 -   `ingress.grafana_listen_port`:  The port on which ingress server serves the grafana service.
 -   `ingress.admin_ui_listen_port`: The port on which ingress server serves the administration panel.
@@ -37,7 +38,7 @@ The following packages must be installed on both ingress and egress servers:
 -   docker-compose
 -   wireguard
 
-Note: after installing wireguard, enable the kernel module by running `modprob wireguard`
+Note: after installing wireguard, enable the kernel module by running `modprobe wireguard`
 
 ### Deploy
 Copy egress and ingress directories to the respective servers, then run `docker-compose up -d` in the directory where `docker-compose.yaml` exists on both servers. Health probes check th status of internal connections, so if `docker-compose ps` shows containers to be unhealthy, review your configurations and/or regenerate the manifests.

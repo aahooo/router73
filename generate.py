@@ -34,6 +34,9 @@ def set_defaults(config):
   if "admin_ui_listen_ip" not in config["ingress"]:
     config["ingress"]["admin_ui_listen_ip"] = config["ingress"]["public_ip"]
 
+  if "docker_bridge_ip" not in config["ingress"]:
+    config["ingress"]["docker_bridge_ip"] = config["ingress"]["docker_bridge_ip"]
+
   if "tunnels" not in config["egress"]:
     config["egress"]["tunnels"] = [
       {"name": "tunl1", "ip": "10.9.0.1", "peer_ip": "10.9.0.2", "forward_port": "50001"},
@@ -92,7 +95,7 @@ services:
       environment:
         CHISEL_ENDPOINT: https://{ config["ingress"]["https_domain"] }
         CHISEL_FINGERPRINT: { config["ingress"]["chisel_fingerprint_hash"] }
-        PEER_ADDR: { config["ingress"]["public_ip"] }
+        PEER_ADDR: { config["ingress"]["docker_bridge_ip"] }
         PEER_PORT: { int(tunnel["forward_port"]) }
         WG_ADDR: { tunnel["ip"] }
         WG_KEY: { tunnel["key"] }
@@ -170,8 +173,7 @@ services:
       - type: bind
         source: ./configs/keys
         target: /keys
-    ports:
-      - "{ config["ingress"]["https_listen_ip"]}:443:{config["ingress"]["https_listen_port"] }"
+    network_mode: host
 
 """
   admin_ui_service = f"""  admin-ui:
